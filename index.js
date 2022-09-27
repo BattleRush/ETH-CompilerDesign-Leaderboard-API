@@ -1,5 +1,6 @@
 // Create REST API
 const express = require('express');
+const helmet = require("helmet");
 
 var bodyParser = require('body-parser')
 const fs = require('fs');
@@ -11,6 +12,8 @@ require('dotenv').config();
 var ipRangeCheck = require("ip-range-check");
 
 const app = express();
+
+app.use(helmet());
 
 var jsonParser = bodyParser.json()
 
