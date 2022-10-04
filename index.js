@@ -139,6 +139,11 @@ app.post('/api/test', jsonParser, (req, res) => {
                         return;
                     }
 
+                    // Skip this project as its not released yet
+                    if(projectData.projectId > currentMaxProjectIdPublished) {
+                        continue;
+                    }
+
                     if (project.score != null) {
                         projectData.score = project.score;
                     } else {
@@ -238,10 +243,12 @@ app.post('/api/test', jsonParser, (req, res) => {
 
                         default:
                             projectName = "undefined";
+                            maxScore = -1;
                             break;
 
                     }
 
+                    // invalid test result
                     if(maxScore < 0){
                         continue;
                     }
@@ -274,28 +281,44 @@ app.post('/api/test', jsonParser, (req, res) => {
                         // Find if ther exits a bestScore for the currentTeam
                         var currentTeam = jsonData[i].teamName;
 
-                        // Limit team name to 50 chars
-                        if (currentTeam.length > 50) {
-                            currentTeam = currentTeam.substring(0, 50);
+                        // Limit team name to 25 chars
+                        if (currentTeam.length > 25) {
+                            currentTeam = currentTeam.substring(0, 25);
                         }
 
                         // Allow empty space and alphanumeric chars
                         currentTeam = currentTeam.replace(/[^a-zA-Z0-9 ]/g, "");
 
-                        var currentScore = currentProject.score;
+ 
                         var bestScore = bestScores.find(x => x.teamName == currentTeam);
                         if (bestScore == undefined) {
                             bestScores.push({
                                 projectId: projectId,
                                 teamName: currentTeam,
-                                score: currentScore,
+                                score: currentProject.score,
                                 passed: currentProject.passed,
                                 failed: currentProject.failed,
                                 dateTime: currentProject.dateTime
                             });
                         } else {
-                            if (currentScore > bestScore.score) {
-                                bestScore.score = currentScore;
+                            // Take the values of better score
+                            if (currentProject.score > bestScore.score) {
+                                bestScore.score = currentProject.score;
+                                bestScore.passed = currentProject.passed;
+                                bestScore.failed = currentProject.failed;
+                                bestScore.dateTime = currentProject.dateTime;
+                            }
+
+                            if(currentProject.score == bestScore.score){
+                                if(currentproject.passed > bestScore.passed)
+                                    bestScore.passed = currentProject.passed;
+
+                                if(currentproject.failed < bestScore.failed)
+                                    bestScore.failed = currentProject.failed;
+
+                                // Update dateTime if the current score is the same but dateTime is newer
+                                if(currentproject.dateTime < bestScore.dateTime)
+                                    bestScore.dateTime = currentProject.dateTime;
                             }
                         }
                     }
