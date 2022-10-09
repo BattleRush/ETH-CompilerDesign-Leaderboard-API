@@ -175,7 +175,9 @@ app.post('/api/test', jsonParser, (req, res) => {
                     }
 
                     if (project.dateTime) {
-                        projectData.dateTime = project.dateTime;
+                        // Overwrite the datetime to prevent cheating
+                        projectData.dateTime = new Date().toISOString()
+                        //projectData.dateTime = project.dateTime;
                     } else {
                         res.status(400).send('Missing dateTime');
                         return;
@@ -310,14 +312,14 @@ app.post('/api/test', jsonParser, (req, res) => {
                             }
 
                             if(currentProject.score == bestScore.score){
-                                if(currentproject.passed > bestScore.passed)
+                                if(currentProject.passed > bestScore.passed)
                                     bestScore.passed = currentProject.passed;
 
-                                if(currentproject.failed < bestScore.failed)
+                                if(currentProject.failed < bestScore.failed)
                                     bestScore.failed = currentProject.failed;
 
                                 // Update dateTime if the current score is the same but dateTime is newer
-                                if(currentproject.dateTime < bestScore.dateTime)
+                                if(currentProject.dateTime < bestScore.dateTime)
                                     bestScore.dateTime = currentProject.dateTime;
                             }
                         }
@@ -350,7 +352,7 @@ app.post('/api/test', jsonParser, (req, res) => {
 
 
                     // Create markdown table
-                    markdownTable += "| Position | Team | Score | % Score | Passing | Failing | First best submission |\n";
+                    markdownTable += "| Position | Team | Score | % Score | Passing | Failing | Time (CET/CEST) |\n";
                     markdownTable += "| --- | --- | --- | --- | --- | --- | --- |\n";
                     var prevScore = -1;
                     var prevPosition = -1;
@@ -367,7 +369,7 @@ app.post('/api/test', jsonParser, (req, res) => {
 
                         // Print datetime in nice format
                         var dateTime = new Date(bestScores[i].dateTime);
-                        var dateTimeString = dateTime.toLocaleString('de-CH', { timeZone: 'Europe/Zurich' }) + " (UTC)";
+                        var dateTimeString = dateTime.toLocaleString('de-CH', { timeZone: 'Europe/Zurich' });
 
                         markdownTable += "| " + position + "| " + bestScores[i].teamName + " | " + bestScores[i].score + " | " + percentScore + " | " + bestScores[i].passed + " | " + bestScores[i].failed + " | " + dateTimeString + " |\n";
                     }
