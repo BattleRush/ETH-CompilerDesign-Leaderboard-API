@@ -176,7 +176,7 @@ app.post('/api/test', jsonParser, (req, res) => {
 
                     if (project.dateTime) {
                         // Overwrite the datetime to prevent cheating
-                        projectData.dateTime = new Date().toISOString()
+                        projectData.dateTime = new Date().toISOString();
                         //projectData.dateTime = project.dateTime;
                     } else {
                         res.status(400).send('Missing dateTime');
