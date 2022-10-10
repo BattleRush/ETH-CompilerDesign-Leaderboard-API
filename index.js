@@ -56,16 +56,18 @@ app.post('/api/test', jsonParser, (req, res) => {
         var currentMaxProjectIdPublished = 1;
 
         // Get the current project by datetime
-        // Determine the current project
-        var project1Release = new Date(2022, 9, 26, 16, 0, 0, 0);
-        var project2Release = new Date(2022, 10, 10, 16, 0, 0, 0);
-        var project3Release = new Date(2022, 10, 24, 16, 0, 0, 0);
-        var project4Release = new Date(2022, 11, 7, 16, 0, 0, 0);
-        var project5Release = new Date(2022, 11, 21, 16, 0, 0, 0);
-        var project6Release = new Date(2022, 12, 5, 16, 0, 0, 0);
+        // Determine the current project (in UTC time)
+        // Month is by index 8 = September, 9 = October, 10 = November, 11 = December
+        var project1Release = new Date(2022, 8, 26, 14, 0, 0, 0);
+        var project2Release = new Date(2022, 9, 10, 14, 0, 0, 0);
+        var project3Release = new Date(2022, 9, 24, 14, 0, 0, 0);
+        var project4Release = new Date(2022, 10, 7, 14, 0, 0, 0);
+        var project5Release = new Date(2022, 10, 21, 14, 0, 0, 0);
+        var project6Release = new Date(2022, 11, 5, 14, 0, 0, 0);
 
         var now = new Date();
 
+        // Check if now is smaller than project1Release
         if (now < project2Release) {
             currentMaxProjectIdPublished = 1;
         }
@@ -123,6 +125,8 @@ app.post('/api/test', jsonParser, (req, res) => {
                 if (projects.length > 6) {
                     res.status(400).send('Too many project provided');
                 }
+                console.log("Logging projects");
+                console.log(json.projects);
 
                 for (var i = 0; i < projects.length; i++) {
                     var project = projects[i];
@@ -133,6 +137,7 @@ app.post('/api/test', jsonParser, (req, res) => {
                     var projectData = {};
 
                     if (project.projectId) {
+                        console.log("Project ID: " + project.projectId);
                         projectData.projectId = project.projectId;
                     } else {
                         res.status(400).send('Missing projectId');
@@ -148,6 +153,7 @@ app.post('/api/test', jsonParser, (req, res) => {
                         projectData.score = project.score;
                     } else {
                         res.status(400).send('Missing score');
+                        console.log("Missing score");
                         return;
                     }
 
@@ -155,6 +161,7 @@ app.post('/api/test', jsonParser, (req, res) => {
                         projectData.maxScore = project.maxScore;
                     } else {
                         res.status(400).send('Missing maxScore');
+                        console.log("Missing maxScore");
                         return;
                     }
 
@@ -162,6 +169,7 @@ app.post('/api/test', jsonParser, (req, res) => {
                         projectData.passed = project.passed;
                     } else {
                         res.status(400).send('Missing passed');
+                        console.log("Missing passed");
                         return;
                     }
 
@@ -171,6 +179,7 @@ app.post('/api/test', jsonParser, (req, res) => {
                         projectData.failed = project.failed;
                     } else {
                         res.status(400).send('Missing failed');
+                        console.log("Missing failed");
                         return;
                     }
 
@@ -180,6 +189,7 @@ app.post('/api/test', jsonParser, (req, res) => {
                         //projectData.dateTime = project.dateTime;
                     } else {
                         res.status(400).send('Missing dateTime');
+                        console.log("Missing dateTime");
                         return;
                     }
 
@@ -256,7 +266,7 @@ app.post('/api/test', jsonParser, (req, res) => {
                     }
 
                     markdownTable += "## " + projectName + "\n\n";
-                    markdownTable += "### Max score: " + maxScore + "\n\n";
+                    markdownTable += "### Project score: " + maxScore + "\n";
 
                     // Get all teams
                     var teams = [];
@@ -266,6 +276,7 @@ app.post('/api/test', jsonParser, (req, res) => {
                             teams.push(team);
                         }
                     }
+
 
                     // Loop trough data
 
@@ -344,18 +355,13 @@ app.post('/api/test', jsonParser, (req, res) => {
 
                     // If the project isnt the current max available one make the section markdown collapsed
                     
-                    if (projectId < currentMaxProjectIdPublished) {
-                        markdownTable += "<details>\n";
-                        markdownTable += "<summary>Click to expand</summary>\n";
-                        markdownTable += "\n";
-                    }
-
 
                     // Create markdown table
-                    markdownTable += "| Position | Team | Score | % Score | Passing | Failing | Time (CET/CEST) |\n";
-                    markdownTable += "| --- | --- | --- | --- | --- | --- | --- |\n";
+                    var markdownTableProject = "| Position | Team | Score | % Score | Passing | Failing | Time (CET/CEST) |\n";
+                    markdownTableProject += "| --- | --- | --- | --- | --- | --- | --- |\n";
                     var prevScore = -1;
                     var prevPosition = -1;
+                    var totalTeams = 0;
                     for (var i = 0; i < bestScores.length; i++) {
                         var percentScore = Math.round(bestScores[i].score / maxScore * 10000) / 100;
 
@@ -371,8 +377,20 @@ app.post('/api/test', jsonParser, (req, res) => {
                         var dateTime = new Date(bestScores[i].dateTime);
                         var dateTimeString = dateTime.toLocaleString('de-CH', { timeZone: 'Europe/Zurich' });
 
-                        markdownTable += "| " + position + "| " + bestScores[i].teamName + " | " + bestScores[i].score + " | " + percentScore + " | " + bestScores[i].passed + " | " + bestScores[i].failed + " | " + dateTimeString + " |\n";
+                        markdownTableProject += "| " + position + "| " + bestScores[i].teamName + " | " + bestScores[i].score + " | " + percentScore + " | " + bestScores[i].passed + " | " + bestScores[i].failed + " | " + dateTimeString + " |\n";
+                        
+                        totalTeams++;
                     }
+
+                    markdownTable += "### Total teams: " + totalTeams + "\n\n";
+                    
+                    if (projectId < currentMaxProjectIdPublished) {
+                        markdownTable += "<details>\n";
+                        markdownTable += "<summary>Click to expand</summary>\n";
+                        markdownTable += "\n";
+                    }
+
+                    markdownTable += markdownTableProject;
 
                     if(projectId < currentMaxProjectIdPublished) {
                         markdownTable += "\n";
